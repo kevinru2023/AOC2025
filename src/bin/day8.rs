@@ -1,7 +1,7 @@
 use aoc2025::utils;
-use std::{collections::BinaryHeap, env, fmt};
+use std::{collections::{BinaryHeap, HashSet}, env, fmt};
 
-#[derive(Debug, Clone, Eq, PartialEq, Ord, PartialOrd)]
+#[derive(Debug, Clone, Eq, PartialEq, Ord, PartialOrd)] // fyi for future me use these or printing is gonna be debugging hell
 struct Point {
     x: u32,
     y: u32,
@@ -10,7 +10,7 @@ struct Point {
 
 impl fmt::Display for Point {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "({}, {}, {})", self.x, self.y, self.z)
+        write!(f, "({}, {}, {})", self.x, self.y, self.z) // same as above lol
     }
 }
 
@@ -79,7 +79,7 @@ fn part_1(edges: Vec<(usize, usize)>, num_points: usize) {
 
     // Find all unique component sizes
     let mut sizes: BinaryHeap<usize> = BinaryHeap::new();
-    let mut seen_roots = std::collections::HashSet::new();
+    let mut seen_roots = HashSet::new();
 
     for i in 0..num_points {
         let root = dsu.find(i);
@@ -98,18 +98,18 @@ fn part_1(edges: Vec<(usize, usize)>, num_points: usize) {
     println!("Part 1: {}", res);
 }
 
-// modified create_graph func (also at this point I realized I could have just sorted the edges but whatever it's getting late, wait maybe not?)
+// modified create_graph func 
 fn create_graph_part2(points: &Vec<Point>) -> Vec<(usize, usize)> {
     let mut heap: BinaryHeap<(i64, (usize, usize))> = BinaryHeap::new();
     for i in 0..points.len() {
         for j in i + 1..points.len() {
             let dist = distance(&points[i], &points[j]);
-            heap.push((-dist, (i, j)));
+            // note for some reason docs mention use of reverse, but the python in me thinks it's cleaner to user negative values
+            heap.push((-dist, (i, j))); 
         }
     }
     let mut edges = Vec::new();
     while !heap.is_empty() {
-        // NOTE: swap this to 1000 later
         let (_, (p1, p2)) = heap.pop().unwrap();
         edges.push((p1, p2));
     }
@@ -126,7 +126,7 @@ fn create_graph_part2(points: &Vec<Point>) -> Vec<(usize, usize)> {
 // lib function to see the size of our current component
 
 fn part_2(edges: Vec<(usize, usize)>, num_points: usize, points: &Vec<Point>) {
-    let mut uf = utils::DSU::new(num_points);
+    let mut uf = utils::DSU::new(num_points); // prob should have moved this to a dif crate
     let mut last_pair = (0, 0);
 
     for (p1, p2) in edges {
@@ -147,6 +147,7 @@ fn main() {
     env::set_var("RUST_BACKTRACE", "1");
     let input: Vec<String> = utils::read_lines(8);
     let points = to_point_vec(&input);
+    // below is useful for debugging the points fyi
     // for (point, idx) in points.iter().enumerate() {
     //     println!("Point: {:?} | idx: {}", point, idx);
     // }
