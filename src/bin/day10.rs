@@ -1,5 +1,6 @@
 use aoc2025::utils;
 use std::env;
+use z3::{Config, Context, Solver};
 
 // This problem trickles down to Given a list of numbers, find the minimum subset whose XOR equals the target.
 // So first we are going to have to parse the input into a list of numbers and a target number
@@ -44,8 +45,8 @@ fn parse_line(line: &String) -> (Vec<u32>, u32) {
     (numbers, target)
 }
 
-fn search(k: usize, subset: &mut Vec<u32>,numbers: &Vec<u32>,target: u32, min_size: &mut usize) {
-    if k == numbers.len(){
+fn search(k: usize, subset: &mut Vec<u32>, numbers: &Vec<u32>, target: u32, min_size: &mut usize) {
+    if k == numbers.len() {
         // process subset
         let mut xor_res: u32 = 0;
         for &num in subset.iter() {
@@ -63,18 +64,58 @@ fn search(k: usize, subset: &mut Vec<u32>,numbers: &Vec<u32>,target: u32, min_si
 }
 
 fn part_1(input: &Vec<String>) {
-    let mut res: u32 = 0; 
+    let mut res: u32 = 0;
     for line in input {
         let (numbers, target) = parse_line(line);
         let mut min_num: usize = usize::MAX;
-        let mut subset: Vec<u32> = Vec::new(); 
+        let mut subset: Vec<u32> = Vec::new();
         search(0, &mut subset, &numbers, target, &mut min_num);
         res += min_num as u32;
     }
     println!("Part 1: {}", res);
 }
 
-fn part_2() {}
+// for part 2 we reduce the problem into the following, represent the list of numbers as vectors
+// where the length of the vector is the number of elements in the last element in the input i.e. for input
+// [.##.] (3) (1,3) (2) (2,3) (0,2) (0,1) {3,5,4,7}
+// {3, 5, 4, 7} would be the last input so we take our length as 4
+// and for each element in the list, i.e. list[i], list[i] repr if 1 is located in the col of the vector
+// i.e. for (3) we would get a vector like [0 0 0 1] and for (1,3) we would get a vector like [0 1 0 1]
+// from here what we want to find out is the min amount of these vectors required to reach the last vector i.e. [3 5 4 7]
+// we can do this by using z3 solver to have variables that repr the amount of a vector we have, i.e. we have an equation like
+// x1[0 0 0 1] + x2[0 1 0 1] + ... + xn[...] (here n is the amount of vectors) = [3 5 4 7] and then solve for these variables
+
+fn parse_line_into_vectors(line: &String) -> (Vec<Vec<u32>>, Vec<u32>) {
+    let parts = line.split(' ').collect::<Vec<&str>>();
+    let n = parts.len();
+    let mut vecs: Vec<Vec<u32>> = Vec::new();
+    let mut target_vec: Vec<u32> = Vec::new();
+    // parse the target vector from the last element
+    let target_str = &parts[n - 1][1..parts[n - 1].len() - 1];
+    target_vec = target_str
+        .split(',')
+        .filter_map(|s| s.parse::<u32>().ok())
+        .collect();
+    
+    // now parse the individual vectors 
+    for i in 1..n-1{
+        let length = parts[i].len() - 2;
+        let vec_str = &parts[i][1..parts[i].len() - 1];
+        let mut vec = vec![0; length];
+        
+        
+    }
+    (vecs, target_vec)
+}
+
+fn part_2(input: &Vec<String>) {
+    let mut res = 0;
+    for line in input {
+        let (vecs, target_vec) = parse_line_into_vectors(line);
+        println!("{:?}", vecs);
+        println!("{:?}", target_vec);
+    }
+}
 
 fn main() {
     unsafe {
@@ -82,5 +123,5 @@ fn main() {
     }
     let input: Vec<String> = utils::read_lines(10);
     part_1(&input);
-    part_2();
+    part_2(&input);
 }

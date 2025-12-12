@@ -32,15 +32,16 @@ fn part_2(red_tiles: &Vec<(i64, i64)>) {
     let n = red_tiles.len();
 
     fn intersects_rectangle_interior(
-        edge_start: (i64, i64),
-        edge_end: (i64, i64),
+        a: (i64, i64),
+        b: (i64, i64),
         rect_x1: i64,
         rect_x2: i64,
         rect_y1: i64,
         rect_y2: i64,
     ) -> bool {
-        let (x1, y1) = edge_start;
-        let (x2, y2) = edge_end;
+        // coords of edge formed by red tiles a & b
+        let (x1, y1) = a; 
+        let (x2, y2) = b;
 
         if x1 == x2 {
             // Vertical edge
@@ -69,11 +70,11 @@ fn part_2(red_tiles: &Vec<(i64, i64)>) {
 
         // Check if any polygon edge intersects the rectangle's interior
         for i in 0..n {
-            let edge_start = red_tiles[i];
-            let edge_end = red_tiles[(i + 1) % n];
+            let a = red_tiles[i];
+            let b = red_tiles[(i + 1) % n];
 
             if intersects_rectangle_interior(
-                edge_start, edge_end, rect_x1, rect_x2, rect_y1, rect_y2,
+                a, b, rect_x1, rect_x2, rect_y1, rect_y2,
             ) {
                 return false;
             }
