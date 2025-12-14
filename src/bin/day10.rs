@@ -1,6 +1,6 @@
 use aoc2025::utils;
 use std::env;
-use z3::{Config, Context, Solver};
+use z3::{ast::Int, Optimize};
 
 // This problem trickles down to Given a list of numbers, find the minimum subset whose XOR equals the target.
 // So first we are going to have to parse the input into a list of numbers and a target number
@@ -96,25 +96,79 @@ fn parse_line_into_vectors(line: &String) -> (Vec<Vec<u32>>, Vec<u32>) {
         .split(',')
         .filter_map(|s| s.parse::<u32>().ok())
         .collect();
-    
-    // now parse the individual vectors 
-    for i in 1..n-1{
-        let length = parts[i].len() - 2;
+
+    let bits = target_vec.len();
+    // now parse the individual vectors
+    for i in 1..n - 1 {
         let vec_str = &parts[i][1..parts[i].len() - 1];
-        let mut vec = vec![0; length];
-        
-        
+        let mut vec = vec![0; bits];
+        for num_str in vec_str.split(',') {
+            if let Ok(idx) = num_str.parse::<usize>() {
+                vec[idx] = 1;
+            }
+        }
+        vecs.push(vec);
     }
     (vecs, target_vec)
+}
+
+// I am gonna keep it real, I needed heavy help from AI, with this part, z3 rust cargo crate is such a pain in the ass
+// conceptually, really easy, rust implementation? Hell. 
+fn compute_line(vecs: &Vec<Vec<u32>>, target_vec: &Vec<u32>) -> i64 {
+    let opt = Optimize::new();
+
+    let m = vecs.len();
+    let n = target_vec.len();
+
+    let x: Vec<Int> = (0..m).map(|i| Int::new_const(format!("x{}", i))).collect();
+
+    for xi in &x {
+        opt.assert(&xi.ge(&Int::from_i64(0)));
+    }
+
+    for r in 0..n {
+        let mut terms = Vec::new();
+        for j in 0..m {
+            if vecs[j][r] > 0 {
+                let coeff = Int::from_i64(vecs[j][r] as i64);
+                terms.push(&x[j] * coeff);
+            }
+        }
+
+        let lhs = if terms.is_empty() {
+            Int::from_i64(0)
+        } else {
+            Int::add(&terms.iter().collect::<Vec<_>>())
+        };
+
+        let rhs = Int::from_i64(target_vec[r] as i64);
+        opt.assert(&lhs.eq(&rhs));
+    }
+
+    let sum = Int::add(&x.iter().collect::<Vec<_>>());
+    opt.minimize(&sum);
+
+    match opt.check(&[]) {
+        z3::SatResult::Sat => {
+            if let Some(model) = opt.get_model() {
+                let result = model.eval(&sum, true).unwrap();
+                result.as_i64().unwrap()
+            } else {
+                panic!("no model");
+            }
+        }
+        _ => panic!("no sol"),
+    }
 }
 
 fn part_2(input: &Vec<String>) {
     let mut res = 0;
     for line in input {
         let (vecs, target_vec) = parse_line_into_vectors(line);
-        println!("{:?}", vecs);
-        println!("{:?}", target_vec);
+        let min_presses = compute_line(&vecs, &target_vec);
+        res += min_presses;
     }
+    println!("Part 2: {}", res);
 }
 
 fn main() {
