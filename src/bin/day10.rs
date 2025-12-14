@@ -13,12 +13,10 @@ fn parse_line(line: &String) -> (Vec<u32>, u32) {
     let parts = line.split(' ').collect::<Vec<&str>>();
     let n = parts.len();
     let mut numbers: Vec<u32> = Vec::new();
-    let mut target: u32 = 0;
-    let mut bits = 0;
     // parse the target number
     let mut num: u32 = 0;
     let binary_str = &parts[0][1..parts[0].len() - 1];
-    bits = binary_str.len() as u32;
+    let bits = binary_str.len() as u32;
     for i in 0..binary_str.len() {
         if let Some(c) = binary_str.chars().nth(i) {
             if c == '#' {
@@ -26,7 +24,7 @@ fn parse_line(line: &String) -> (Vec<u32>, u32) {
             }
         }
     }
-    target = num;
+    let target = num;
     num = 0; // reset num
 
     // parse the list of numbers
@@ -89,10 +87,9 @@ fn parse_line_into_vectors(line: &String) -> (Vec<Vec<u32>>, Vec<u32>) {
     let parts = line.split(' ').collect::<Vec<&str>>();
     let n = parts.len();
     let mut vecs: Vec<Vec<u32>> = Vec::new();
-    let mut target_vec: Vec<u32> = Vec::new();
     // parse the target vector from the last element
     let target_str = &parts[n - 1][1..parts[n - 1].len() - 1];
-    target_vec = target_str
+    let target_vec: Vec<u32> = target_str
         .split(',')
         .filter_map(|s| s.parse::<u32>().ok())
         .collect();

@@ -1,5 +1,5 @@
 use aoc2025::utils;
-use std::env;
+// use std::env;
 
 fn vec_to_tuples(input: &Vec<String>) -> Vec<(i64, i64)> {
     input
@@ -110,7 +110,7 @@ fn part_2(red_tiles: &Vec<(i64, i64)>) {
     println!("Part 2: {}", max_area);
 }
 fn main() {
-    env::set_var("RUST_BACKTRACE", "1");
+    // env::set_var("RUST_BACKTRACE", "1");
     let input: Vec<String> = utils::read_lines(9);
     let input_tuples = vec_to_tuples(&input);
     part_1(&input_tuples);
